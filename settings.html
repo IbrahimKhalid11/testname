@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Report Repository</title>
+    <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-file-alt"></i>
+                <h2>IRAVIN REPORTS</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="reports.html"><i class="fas fa-file-alt"></i> Reports</a></li>
+                    <li><a href="kpi-data-entry.html"><i class="fas fa-chart-bar"></i> KPI Data Entry</a></li>
+                    <li><a href="scorecard-designer.html"><i class="fas fa-edit"></i> Scorecard Designer</a></li>
+                    <li><a href="system-reports.html"><i class="fas fa-chart-line"></i> System Reports</a></li>
+                    <li><a href="calendar.html"><i class="fas fa-calendar-alt"></i> Calendar</a></li>
+                    <li><a href="users.html"><i class="fas fa-users"></i> User Management</a></li>
+                    <li class="active"><a href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="login.html" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </aside>
+        <main class="main-content">
+            <header class="main-header">
+                <h1>Settings</h1>
+            </header>
+            <section class="content-section">
+                <div class="settings-tabs">
+                    <button class="tab-link active" data-tab="departments">Departments</button>
+                    <button class="tab-link" data-tab="reports">Reports</button>
+                    <button class="tab-link" data-tab="frequencies">Frequencies</button>
+                    <button class="tab-link" data-tab="formats">Formats</button>
+                </div>
+                <div id="departments" class="tab-content active">
+                    <div class="header-actions">
+                        <h2>Manage Departments</h2>
+                        <button class="action-button primary" id="add-department-btn">
+                            <i class="fas fa-plus"></i> Add Department
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="departments-settings-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Manager</th>
+                                    <th>Total Reports</th>
+                                    <th>On-time Rate</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Department data will be loaded here dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Department Modal Form -->
+                    <div id="department-modal" class="modal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 id="department-modal-title">Add Department</h3>
+                                <span class="modal-close">&times;</span>
+                            </div>
+                            <div class="modal-body">
+                                <form id="department-form">
+                                    <input type="hidden" id="department-id">
+                                    <div class="form-group">
+                                        <label for="department-name">Department Name</label>
+                                        <input type="text" id="department-name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="department-manager">Department Manager</label>
+                                        <select id="department-manager">
+                                            <option value="">Select Manager</option>
+                                            <!-- Managers will be loaded here dynamically -->
+                                        </select>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="button" class="cancel-btn">Cancel</button>
+                                        <button type="submit" class="save-btn">Save</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="reports" class="tab-content">
+                    <div class="header-actions">
+                        <h2>Manage Report Types</h2>
+                        <div class="header-buttons">
+                            <button class="action-button secondary" id="download-reports-btn">
+                                <i class="fas fa-download"></i> Download All Reports
+                            </button>
+                            <button class="action-button primary" id="add-report-btn">
+                                <i class="fas fa-plus"></i> Add Report Type
+                            </button>
+                        </div>
+                    </div>
+                    <div class="filter-container">
+                        <div class="filter-group">
+                            <label for="department-filter-settings">Department:</label>
+                            <select id="department-filter-settings">
+                                <option value="">All Departments</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="frequency-filter-settings">Frequency:</label>
+                            <select id="frequency-filter-settings">
+                                <option value="">All Frequencies</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="reports-settings-table">
+                            <thead>
+                                <tr>
+                                    <th>Report Name</th>
+                                    <th>Department</th>
+                                    <th>Frequency</th>
+                                    <th>Format</th>
+                                    <th>Description</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Report type data will be loaded here dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Report Type Modal Form -->
+                    <div id="report-modal" class="modal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 id="report-modal-title">Add Report Type</h3>
+                                <span class="modal-close">&times;</span>
+                            </div>
+                            <div class="modal-body">
+                                <form id="report-form">
+                                    <input type="hidden" id="report-id">
+                                    <div class="form-group">
+                                        <label for="report-name">Report Name</label>
+                                        <input type="text" id="report-name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="report-department">Department</label>
+                                        <select id="report-department" required>
+                                            <option value="">Select Department</option>
+                                            <!-- Departments will be loaded here dynamically -->
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="report-frequency">Frequency</label>
+                                        <select id="report-frequency" required>
+                                            <option value="">Select Frequency</option>
+                                            <!-- Frequencies will be loaded here dynamically -->
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="report-format">Format</label>
+                                        <select id="report-format" required>
+                                            <option value="">Select Format</option>
+                                            <!-- Formats will be loaded here dynamically -->
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="report-description">Description</label>
+                                        <textarea id="report-description" rows="3"></textarea>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="button" class="cancel-btn">Cancel</button>
+                                        <button type="submit" class="save-btn">Save</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="frequencies" class="tab-content">
+                    <div class="header-actions">
+                        <h2>Manage Frequencies</h2>
+                        <button class="action-button primary" id="add-frequency-btn">
+                            <i class="fas fa-plus"></i> Add Frequency
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="frequencies-settings-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Frequency data will be loaded here dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Frequency Modal Form -->
+                    <div id="frequency-modal" class="modal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 id="frequency-modal-title">Add Frequency</h3>
+                                <span class="modal-close">&times;</span>
+                            </div>
+                            <div class="modal-body">
+                                <form id="frequency-form">
+                                    <input type="hidden" id="frequency-id">
+                                    <div class="form-group">
+                                        <label for="frequency-name">Frequency Name</label>
+                                        <input type="text" id="frequency-name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="frequency-description">Description</label>
+                                        <input type="text" id="frequency-description">
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="button" class="cancel-btn">Cancel</button>
+                                        <button type="submit" class="save-btn">Save</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="formats" class="tab-content">
+                    <div class="header-actions">
+                        <h2>Manage Formats</h2>
+                        <button class="action-button primary" id="add-format-btn">
+                            <i class="fas fa-plus"></i> Add Format
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="formats-settings-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Format data will be loaded here dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Format Modal Form -->
+                    <div id="format-modal" class="modal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 id="format-modal-title">Add Format</h3>
+                                <span class="modal-close">&times;</span>
+                            </div>
+                            <div class="modal-body">
+                                <form id="format-form">
+                                    <input type="hidden" id="format-id">
+                                    <div class="form-group">
+                                        <label for="format-name">Format Name</label>
+                                        <input type="text" id="format-name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="format-description">Description</label>
+                                        <input type="text" id="format-description">
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="button" class="cancel-btn">Cancel</button>
+                                        <button type="submit" class="save-btn">Save</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <!-- Load Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Supabase Integration Scripts -->
+    <script src="assets/js/supabase/config.js"></script>
+    <script src="assets/js/supabase/auth.js"></script>
+    <script src="assets/js/supabase/data.js"></script>
+    <script src="assets/js/supabase/integration-manager.js"></script>
+    
+    <!-- Application Scripts -->
+    <script src="assets/js/data.js"></script>
+    <script src="assets/js/script.js"></script>
+    
+    <!-- Access Control Module -->
+    <script src="assets/js/access-control.js"></script>
+    
+    <!-- Navigation Template -->
+    <script src="assets/js/navigation-template.js"></script>
+    
+    <!-- Comprehensive Integration Fix Script -->
+    <script src="integration-fix.js"></script>
+    
+    <script>
+        // Authentication helper function for RLS policies
+        async function ensureAuthenticated() {
+            try {
+                const supabaseClient = getSupabaseClient();
+                
+                // Check current session
+                const { data: sessionData } = await supabaseClient.auth.getSession();
+                
+                if (!sessionData?.session) {
+                    console.log('No active session, authenticating...');
+                    
+                    // Authenticate before database operations (using admin credentials)
+                    const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
+                        email: 'supa4@iravin.com',
+                        password: 'password123'
+                    });
+                    
+                    if (authError) {
+                        throw authError;
+                    }
+                    
+                    console.log('Using new authenticated session');
+                    return authData.session;
+                }
+                
+                console.log('Using existing authenticated session');
+                return sessionData.session;
+            } catch (error) {
+                console.error('Authentication error:', error);
+                throw error;
+            }
+        }
+        
+        // Initialize Supabase integration
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Auto-initializing Supabase Integration Manager...');
+            
+            // Initialize Supabase integration manager
+            if (typeof supabaseIntegrationManager !== 'undefined') {
+                supabaseIntegrationManager.initialize()
+                    .then(() => {
+                        console.log('✅ Supabase Integration Manager initialized successfully');
+                        return supabaseIntegrationManager.syncFromSupabase();
+                    })
+                    .then(() => {
+                        console.log('✅ Initial sync from Supabase completed');
+                    })
+                    .catch((error) => {
+                        console.error('❌ Supabase Integration Manager initialization failed:', error);
+                        console.log('📄 Falling back to local data only');
+                    });
+            } else {
+                console.warn('⚠️ Supabase Integration Manager not available, using local data only');
+            }
+        });
+    </script>
+</body>
+</html>

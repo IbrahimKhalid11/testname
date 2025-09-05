@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Departments - Report Repository</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar" id="sidebar">
+            <!-- Navigation will be populated by navigation-template.js -->
+        </aside>
+        <main class="main-content">
+            <header class="main-header">
+                <h1>Departments</h1>
+                <div class="header-actions">
+                    <button class="btn-primary"><i class="fas fa-plus"></i> Add Department</button>
+                </div>
+            </header>
+            <section class="content-section">
+                <div class="table-container">
+                    <table id="departments-table">
+                        <thead>
+                            <tr>
+                                <th>Department Name</th>
+                                <th>Manager</th>
+                                <th>Total Reports Assigned</th>
+                                <th>On-time Rate</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Department data will be injected here by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+    <!-- Supabase Integration Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase/config.js"></script>
+    <script src="assets/js/supabase/auth.js"></script>
+    <script src="assets/js/supabase/data.js"></script>
+    <script src="assets/js/supabase/integration-manager.js"></script>
+    
+    <!-- Application Scripts -->
+    <script src="assets/js/data.js"></script>
+    <script src="assets/js/script.js"></script>
+    
+    <!-- Access Control Module -->
+    <script src="assets/js/access-control.js"></script>
+    
+    <!-- Navigation Template -->
+    <script src="assets/js/navigation-template.js"></script>
+    
+    <!-- Comprehensive Integration Fix Script -->
+    <script src="integration-fix.js"></script>
+    
+    <script>
+        // Initialize Supabase integration when page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Initializing Departments page with Supabase integration...');
+            
+            try {
+                // Initialize access control
+                if (typeof initializeAccessControl === 'function') {
+                    await initializeAccessControl();
+                }
+                
+                // Initialize the integration
+                if (typeof supabaseIntegrationManager !== 'undefined') {
+                    const initialized = await supabaseIntegrationManager.init();
+                    
+                    if (initialized) {
+                        console.log('✅ Supabase integration ready');
+                        
+                        // Sync departments data
+                        await supabaseIntegrationManager.syncFromSupabase();
+                        
+                        // Re-render the departments table with updated data
+                        if (typeof renderTable === 'function') {
+                            renderTable('departments-table', DB.get('departments'), ['name', 'manager', 'reports', 'onTimeRate']);
+                        }
+                    } else {
+                        console.warn('⚠️ Running in offline mode');
+                    }
+                } else {
+                    console.warn('⚠️ Supabase integration manager not available');
+                }
+            } catch (error) {
+                console.error('❌ Failed to initialize Supabase integration:', error);
+            }
+        });
+    </script>
+</body>
+</html>

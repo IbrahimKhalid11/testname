@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Report Repository</title>
+    <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-file-alt"></i>
+                <h2>IRAVIN REPORTS</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="reports.html"><i class="fas fa-file-alt"></i> Reports</a></li>
+                    <li><a href="kpi-data-entry.html"><i class="fas fa-chart-bar"></i> KPI Data Entry</a></li>
+                    <li><a href="scorecard-designer.html"><i class="fas fa-edit"></i> Scorecard Designer</a></li>
+                    <li><a href="system-reports.html"><i class="fas fa-chart-line"></i> System Reports</a></li>
+                    <li><a href="calendar.html"><i class="fas fa-calendar-alt"></i> Calendar</a></li>
+                    <li class="active"><a href="users.html"><i class="fas fa-users"></i> User Management</a></li>
+                    <li><a href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="login.html" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </aside>
+        <main class="main-content">
+            <header class="main-header">
+                <h1>User Management</h1>
+                <button class="action-button primary" id="add-user-btn">
+                    <i class="fas fa-user-plus"></i> Add User
+                </button>
+            </header>
+            <section class="content-section">
+                <div class="filter-bar">
+                    <input type="search" placeholder="Search users..." class="search-bar" id="user-search">
+                    <select id="role-filter">
+                        <option value="">All Roles</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Manager">Manager</option>
+                        <option value="User">User</option>
+                    </select>
+                    <select id="department-filter">
+                        <option value="">All Departments</option>
+                    </select>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="users-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Department</th>
+                                <th>Role</th>
+                                <th>Last Login</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- User data will be loaded here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- User Modal -->
+            <div id="user-modal" class="modal">
+                <div class="modal-content modal-lg">
+                    <div class="modal-header">
+                        <h3 id="user-modal-title">Add User</h3>
+                        <span class="modal-close">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <form id="user-form">
+                            <input type="hidden" id="user-id">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="user-name">Full Name</label>
+                                    <input type="text" id="user-name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="user-email">Email</label>
+                                    <input type="email" id="user-email" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="user-department">Primary Department</label>
+                                    <select id="user-department" required>
+                                        <option value="">Select Department</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="user-role">Role</label>
+                                    <select id="user-role" required>
+                                        <option value="">Select Role</option>
+                                        <option value="Admin">Admin</option>
+                                        <option value="Manager">Manager</option>
+                                        <option value="User">User</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Secondary Departments</label>
+                                <div class="checkbox-group" id="additional-departments-container">
+                                    <!-- Additional departments will be loaded dynamically -->
+                                </div>
+                                <small>Select additional departments this user can access</small>
+                            </div>
+                            <div class="form-group" id="password-group">
+                                <label for="user-password">Password</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="password" id="user-password" required style="flex: 1;">
+                                    <button type="button" id="generate-password-btn" class="btn-secondary" style="white-space: nowrap;">Generate</button>
+                                </div>
+                                <small id="password-help">Password is required for new users. Leave empty to keep current password when editing.</small>
+                            </div>
+                            
+                            <div class="permissions-section">
+                                <h4>Department Access Permissions</h4>
+                                <div class="dept-permissions-container" id="dept-permissions">
+                                    <!-- Department permissions will be loaded dynamically -->
+                                </div>
+                                
+                                <h4 style="margin-top: 1.5rem;">Action Permissions</h4>
+                                <div class="permissions-grid">
+                                    <div class="permission-category">
+                                        <h5>View Permissions</h5>
+                                        <div class="permission-options">
+                                            <label><input type="radio" name="view-permission" value="all"> All Departments</label>
+                                            <label><input type="radio" name="view-permission" value="specific" checked> Selected Departments</label>
+                                            <label><input type="radio" name="view-permission" value="none"> None</label>
+                                        </div>
+                                    </div>
+                                    <div class="permission-category">
+                                        <h5>Add Permissions</h5>
+                                        <div class="permission-options">
+                                            <label><input type="radio" name="add-permission" value="all"> All Departments</label>
+                                            <label><input type="radio" name="add-permission" value="specific" checked> Selected Departments</label>
+                                            <label><input type="radio" name="add-permission" value="none"> None</label>
+                                        </div>
+                                    </div>
+                                    <div class="permission-category">
+                                        <h5>Edit Permissions</h5>
+                                        <div class="permission-options">
+                                            <label><input type="radio" name="edit-permission" value="all"> All Departments</label>
+                                            <label><input type="radio" name="edit-permission" value="specific" checked> Selected Departments</label>
+                                            <label><input type="radio" name="edit-permission" value="own"> Own Reports Only</label>
+                                            <label><input type="radio" name="edit-permission" value="none"> None</label>
+                                        </div>
+                                    </div>
+                                    <div class="permission-category">
+                                        <h5>Delete Permissions</h5>
+                                        <div class="permission-options">
+                                            <label><input type="radio" name="delete-permission" value="all"> All Departments</label>
+                                            <label><input type="radio" name="delete-permission" value="specific" checked> Selected Departments</label>
+                                            <label><input type="radio" name="delete-permission" value="own"> Own Reports Only</label>
+                                            <label><input type="radio" name="delete-permission" value="none"> None</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" class="cancel-btn">Cancel</button>
+                                <button type="submit" class="save-btn">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <!-- Application Scripts -->
+    <script src="assets/js/data.js"></script>
+    
+    <!-- Supabase Integration Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase/config.js"></script>
+    <script src="assets/js/supabase/auth.js"></script>
+    <script src="assets/js/supabase/data.js"></script>
+    <script src="assets/js/supabase/integration-manager.js"></script>
+    
+    <!-- Main Application Scripts -->
+    <script src="assets/js/script.js"></script>
+    <script src="assets/js/app.js"></script>
+    
+    <!-- Access Control Module -->
+    <script src="assets/js/access-control.js"></script>
+    
+    <!-- Navigation Template -->
+    <script src="assets/js/navigation-template.js"></script>
+    
+    <!-- Comprehensive Integration Fix Script -->
+    <script src="integration-fix.js"></script>
+    
+    <script>
+        // Direct authentication pattern for form submissions
+        async function ensureAuthenticated() {
+            try {
+                const supabaseClient = getSupabaseClient();
+                
+                // Check current session
+                const { data: sessionData } = await supabaseClient.auth.getSession();
+                
+                if (!sessionData?.session) {
+                    console.log('No active session, authenticating...');
+                    
+                    // Authenticate before database operations
+                    const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
+                        email: 'admin@reportrepo.com',
+                        password: 'admin123456'
+                    });
+                    
+                    // Create admin account if it doesn't exist
+                    if (authError && authError.message.includes('Invalid login credentials')) {
+                        console.log('Admin account not found, creating...');
+                        const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
+                            email: 'admin@reportrepo.com',
+                            password: 'admin123456',
+                            options: { data: { name: 'Admin User' } }
+                        });
+                        
+                        // Create user profile in public.users table
+                        if (signUpData?.user) {
+                            await supabaseClient.from('users').insert({
+                                id: signUpData.user.id,
+                                email: 'admin@reportrepo.com',
+                                name: 'Admin User',
+                                role: 'Admin',
+                                permissions: { canView: ['all'], canAdd: ['all'], canEdit: ['all'], canDelete: ['all'] }
+                            });
+                            console.log('Admin account created');
+                        }
+                    } else {
+                        console.log('Authentication successful');
+                    }
+                } else {
+                    console.log('Using existing authenticated session');
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Authentication error:', error);
+                return false;
+            }
+        }
+        
+        // User form submission is now handled in integration-fix.js
+        
+        // Function to populate department dropdowns - REMOVED to avoid conflict with integration-fix.js
+        // The enhanced version in integration-fix.js will be used instead
+        
+        // Function to migrate orphaned auth users to public.users table
+        async function migrateOrphanedUsers() {
+            try {
+                console.log('🔄 Checking for orphaned users in public.users table...');
+                
+                
+                // Ensure we're authenticated
+                await ensureAuthenticated();
+                
+                const supabaseClient = getSupabaseClient();
+                
+                // Instead of using admin.listUsers which requires admin privileges,
+                // just work with the public.users table which we have access to
+                const publicUsers = await supabaseDataService.get('users');
+                
+                console.log(`Working with ${publicUsers.length} users in the system`);
+                
+                // Since we can't access auth.users directly, we'll just ensure the 
+                // public.users table has consistent data and fix any issues there
+                
+                for (const user of publicUsers) {
+                    if (!user.permissions) {
+                        console.log(`Fixing user without permissions: ${user.email}`);
+                        
+                        // Create default permissions
+                        const defaultPermissions = {
+                            canView: ['department'],
+                            canAdd: ['department'],
+                            canEdit: ['own'],
+                            canDelete: ['none']
+                        };
+                        
+                        // Update the user
+                        await supabaseDataService.update('users', user.id, {
+                            permissions: defaultPermissions,
+                            updated_at: new Date().toISOString()
+                        });
+                    }
+                }
+                
+                showNotification(`Updated user records with missing data`, 'success');
+                
+                // Refresh the user data
+                await supabaseIntegrationManager.syncFromSupabase();
+                if (typeof renderUsersTable === 'function') {
+                    renderUsersTable();
+                }
+            } catch (error) {
+                console.error('Error migrating users:', error);
+                showNotification('Error updating user records: ' + error.message, 'error');
+            }
+        }
+        
+        // Initialize Supabase integration when page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Initializing Users page with Supabase integration...');
+            
+            try {
+                // Ensure we're authenticated for database operations
+                await ensureAuthenticated();
+                
+                // Initialize the integration
+                const initialized = await supabaseIntegrationManager.init();
+                
+                if (initialized) {
+                    console.log('✅ Supabase integration ready for Users page');
+                    
+                    // Sync users and departments data
+                    await supabaseIntegrationManager.syncFromSupabase();
+                    
+                    // Apply department-based access control
+                    applyDepartmentAccessControl();
+                    
+                    // Re-render the page components with updated data
+                    if (typeof renderUsersPage === 'function') {
+                        renderUsersPage();
+                    }
+                    if (typeof setupUserManagement === 'function') {
+                        setupUserManagement();
+                    }
+                    
+                    // Populate department dropdowns - handled by integration-fix.js
+                    
+                    // User form submission is handled in integration-fix.js
+                    
+                    showNotification('Users data synchronized successfully', 'success');
+                } else {
+                    console.warn('⚠️ Running in offline mode');
+                    showNotification('Running in offline mode - some features may be limited', 'warning');
+                }
+            } catch (error) {
+                console.error('❌ Failed to initialize Supabase integration:', error);
+                showNotification('Failed to connect to server - running in offline mode', 'error');
+            }
+        });
+        
+        // Function to apply department-based access control
+        function applyDepartmentAccessControl() {
+            console.log('🔒 Applying department-based access control to Users page...');
+            
+            // Get current user and their allowed departments
+            const currentUser = DB.getCurrentUser();
+            if (!currentUser) {
+                console.log('🔒 No current user found, applying default restrictions');
+                return;
+            }
+            
+            console.log('🔒 Current user:', currentUser.name, 'Role:', currentUser.role);
+            
+            // Admin users can see all departments and users
+            if (currentUser.role === 'Admin') {
+                console.log('🔒 Admin user - full access granted');
+                return;
+            }
+            
+            // Get user's allowed departments
+            const allowedDepartments = getUserAllowedDepartments();
+            console.log('🔒 User allowed departments:', allowedDepartments);
+            
+            // Populate department filter with only allowed departments
+            populateUsersDepartmentFilter(allowedDepartments);
+            
+            // Filter users table to show only users from allowed departments
+            filterUsersTableByDepartments(allowedDepartments);
+            
+            // Update user form to restrict department selection
+            updateUserFormDepartmentRestrictions(allowedDepartments);
+        }
+        
+        // Function to populate department filter with RLS
+        function populateUsersDepartmentFilter(allowedDepartments) {
+            console.log('🔒 Populating users page department filter with RLS...');
+            
+            const departmentFilter = document.getElementById('department-filter');
+            if (departmentFilter) {
+                departmentFilter.innerHTML = '<option value="">All Departments</option>';
+                allowedDepartments.forEach(deptName => {
+                    const option = document.createElement('option');
+                    option.value = deptName;
+                    option.textContent = deptName;
+                    departmentFilter.appendChild(option);
+                    console.log('🔒 Added department option:', deptName);
+                });
+                console.log('🔒 Users page department filter populated with RLS:', allowedDepartments.length, 'departments');
+                
+                // Add event listener for department filter changes
+                departmentFilter.addEventListener('change', function() {
+                    console.log('🔒 Users department filter changed to:', this.value);
+                    filterUsersTableByDepartments(allowedDepartments, this.value);
+                });
+            } else {
+                console.error('❌ Users department filter element not found!');
+            }
+        }
+        
+        // Function to filter users table by departments
+        function filterUsersTableByDepartments(allowedDepartments, selectedDepartment = '') {
+            console.log('🔒 Filtering users table by departments:', { allowedDepartments, selectedDepartment });
+            
+            const usersTable = document.getElementById('users-table');
+            if (!usersTable) {
+                console.error('❌ Users table not found!');
+                return;
+            }
+            
+            const userRows = usersTable.querySelectorAll('tbody tr');
+            console.log('🔒 Found user rows:', userRows.length);
+            
+            let visibleCount = 0;
+            
+            userRows.forEach((row, index) => {
+                const departmentCell = row.querySelector('td:nth-child(3)'); // Department is in 3rd column
+                if (departmentCell) {
+                    const userDepartment = departmentCell.textContent.trim();
+                    console.log(`🔒 Row ${index} user department: "${userDepartment}"`);
+                    
+                    // Check if user's department is in allowed departments
+                    const isAllowedDepartment = allowedDepartments.includes(userDepartment);
+                    
+                    // Apply additional filter if specific department is selected
+                    const matchesSelectedFilter = !selectedDepartment || userDepartment === selectedDepartment;
+                    
+                    if (isAllowedDepartment && matchesSelectedFilter) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+            
+            console.log('🔒 Users filter result - visible users:', visibleCount);
+            
+            // Show message if no users are visible
+            const tbody = usersTable.querySelector('tbody');
+            if (visibleCount === 0) {
+                const noDataRow = document.createElement('tr');
+                noDataRow.innerHTML = `
+                    <td colspan="6" style="text-align: center; color: #999; padding: 20px;">
+                        <i class="fas fa-users" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                        <p>No users found in your accessible departments</p>
+                        <small>You can only view users from departments you have access to</small>
+                    </td>
+                `;
+                tbody.appendChild(noDataRow);
+            }
+        }
+        
+        // Function to update user form department restrictions
+        function updateUserFormDepartmentRestrictions(allowedDepartments) {
+            console.log('🔒 Updating user form department restrictions...');
+            
+            // Update primary department dropdown
+            const primaryDeptSelect = document.getElementById('user-department');
+            if (primaryDeptSelect) {
+                primaryDeptSelect.innerHTML = '<option value="">Select Department</option>';
+                allowedDepartments.forEach(deptName => {
+                    const option = document.createElement('option');
+                    option.value = deptName;
+                    option.textContent = deptName;
+                    primaryDeptSelect.appendChild(option);
+                });
+                console.log('🔒 Primary department dropdown updated with allowed departments');
+            }
+            
+            // Update secondary departments checkboxes
+            const additionalDeptsContainer = document.getElementById('additional-departments-container');
+            if (additionalDeptsContainer) {
+                additionalDeptsContainer.innerHTML = '';
+                allowedDepartments.forEach(deptName => {
+                    const checkboxDiv = document.createElement('div');
+                    checkboxDiv.className = 'checkbox-item';
+                    checkboxDiv.innerHTML = `
+                        <label>
+                            <input type="checkbox" name="additional-departments" value="${deptName}">
+                            ${deptName}
+                        </label>
+                    `;
+                    additionalDeptsContainer.appendChild(checkboxDiv);
+                });
+                console.log('🔒 Secondary departments checkboxes updated with allowed departments');
+            }
+            
+            // Update department permissions section
+            const deptPermissionsContainer = document.getElementById('dept-permissions');
+            if (deptPermissionsContainer) {
+                deptPermissionsContainer.innerHTML = '';
+                allowedDepartments.forEach(deptName => {
+                    const permissionDiv = document.createElement('div');
+                    permissionDiv.className = 'dept-permission-item';
+                    permissionDiv.innerHTML = `
+                        <div class="dept-permission-header">
+                            <h5>${deptName}</h5>
+                        </div>
+                        <div class="dept-permission-options">
+                            <label><input type="checkbox" name="dept-${deptName}-view" checked> View</label>
+                            <label><input type="checkbox" name="dept-${deptName}-add" checked> Add</label>
+                            <label><input type="checkbox" name="dept-${deptName}-edit" checked> Edit</label>
+                            <label><input type="checkbox" name="dept-${deptName}-delete"> Delete</label>
+                        </div>
+                    `;
+                    deptPermissionsContainer.appendChild(permissionDiv);
+                });
+                console.log('🔒 Department permissions section updated with allowed departments');
+            }
+        }
+    </script>
+</body>
+</html>

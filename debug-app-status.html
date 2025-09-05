@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Status Diagnostic</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 App Status Diagnostic</h1>
+    
+    <div id="status-container"></div>
+    
+    <div>
+        <button onclick="runDiagnostic()">🔄 Run Diagnostic</button>
+        <button onclick="checkIntegration()">🔗 Check Integration</button>
+        <button onclick="testSync()">🔄 Test Sync</button>
+        <button onclick="clearLogs()">🗑️ Clear Logs</button>
+    </div>
+    
+    <h3>Console Logs:</h3>
+    <pre id="logs"></pre>
+
+    <!-- Load dependencies -->
+    <script src="assets/js/supabase/config.js"></script>
+    <script src="assets/js/supabase/data.js"></script>
+    <script src="assets/js/supabase/integration-manager.js"></script>
+    <script src="assets/js/data.js"></script>
+
+    <script>
+        let logs = [];
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            logs.push(logEntry);
+            updateLogDisplay();
+        }
+        
+        function updateLogDisplay() {
+            const logContainer = document.getElementById('logs');
+            logContainer.textContent = logs.slice(-50).join('\n');
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        function clearLogs() {
+            logs = [];
+            updateLogDisplay();
+        }
+        
+        function updateStatus(message, type = 'info') {
+            const container = document.getElementById('status-container');
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+            container.appendChild(statusDiv);
+        }
+        
+        async function runDiagnostic() {
+            clearLogs();
+            document.getElementById('status-container').innerHTML = '';
+            
+            log('🚀 Starting app diagnostic...');
+            updateStatus('Running diagnostic...', 'info');
+            
+            // Check basic dependencies
+            log('Checking dependencies...');
+            const checks = {
+                'DB object': typeof DB !== 'undefined',
+                'Supabase config': typeof SUPABASE_CONFIG !== 'undefined',
+                'Supabase data service': typeof supabaseDataService !== 'undefined',
+                'Integration manager': typeof supabaseIntegrationManager !== 'undefined'
+            };
+            
+            Object.entries(checks).forEach(([name, available]) => {
+                if (available) {
+                    log(`✅ ${name} available`);
+                    updateStatus(`✅ ${name} available`, 'success');
+                } else {
+                    log(`❌ ${name} not available`);
+                    updateStatus(`❌ ${name} not available`, 'error');
+                }
+            });
+            
+            // Check local storage
+            log('Checking local storage...');
+            try {
+                const localData = JSON.parse(localStorage.getItem('reportrepo_db') || '{}');
+                const dataKeys = Object.keys(localData);
+                log(`📦 Local storage has ${dataKeys.length} collections: ${dataKeys.join(', ')}`);
+                updateStatus(`📦 Local storage: ${dataKeys.length} collections`, 'info');
+            } catch (error) {
+                log(`❌ Local storage error: ${error.message}`);
+                updateStatus(`❌ Local storage error`, 'error');
+            }
+            
+            // Check integration manager status
+            if (typeof supabaseIntegrationManager !== 'undefined') {
+                log('Checking integration manager status...');
+                const status = supabaseIntegrationManager.getSyncStatus();
+                log(`📊 Integration status: ${JSON.stringify(status, null, 2)}`);
+                updateStatus(`📊 Integration initialized: ${status.isInitialized}`, status.isInitialized ? 'success' : 'warning');
+            }
+            
+            log('✅ Diagnostic completed');
+        }
+        
+        async function checkIntegration() {
+            log('🔗 Checking integration...');
+            
+            if (typeof supabaseIntegrationManager === 'undefined') {
+                log('❌ Integration manager not available');
+                updateStatus('❌ Integration manager not available', 'error');
+                return;
+            }
+            
+            try {
+                const initialized = await supabaseIntegrationManager.init();
+                if (initialized) {
+                    log('✅ Integration manager initialized successfully');
+                    updateStatus('✅ Integration ready', 'success');
+                } else {
+                    log('❌ Integration manager initialization failed');
+                    updateStatus('❌ Integration failed', 'error');
+                }
+            } catch (error) {
+                log(`❌ Integration error: ${error.message}`);
+                updateStatus(`❌ Integration error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testSync() {
+            log('🔄 Testing sync...');
+            
+            if (typeof supabaseIntegrationManager === 'undefined') {
+                log('❌ Integration manager not available');
+                updateStatus('❌ Integration manager not available', 'error');
+                return;
+            }
+            
+            try {
+                const result = await supabaseIntegrationManager.syncFromSupabase();
+                log(`✅ Sync completed: ${JSON.stringify(result, null, 2)}`);
+                updateStatus('✅ Sync completed successfully', 'success');
+            } catch (error) {
+                log(`❌ Sync failed: ${error.message}`);
+                updateStatus(`❌ Sync failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Auto-run diagnostic on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(runDiagnostic, 1000);
+        });
+    </script>
+</body>
+</html> 

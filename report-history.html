@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report History - Report Repository</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .avatar-initials {
+            background-color: var(--secondary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+        .avatar-initials::before {
+            content: attr(data-initials);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-database"></i>
+                <h2>ReportRepo</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="reports.html"><i class="fas fa-file-alt"></i> Reports</a></li>
+                    <li><a href="kpi-data-entry.html"><i class="fas fa-chart-bar"></i> KPI Data Entry</a></li>
+                    <li><a href="scorecard-designer.html"><i class="fas fa-edit"></i> Scorecard Designer</a></li>
+                    <li><a href="system-reports.html"><i class="fas fa-chart-line"></i> System Reports</a></li>
+                    <li><a href="calendar.html"><i class="fas fa-calendar-alt"></i> Calendar</a></li>
+                    <li><a href="users.html"><i class="fas fa-users"></i> User Management</a></li>
+                    <li><a href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="login.html" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </aside>
+        <main class="main-content">
+            <header class="main-header">
+                <h1>Report History</h1>
+            </header>
+            <section class="content-section">
+                <div class="filter-bar advanced-filter">
+                    <div class="filter-group">
+                        <label for="report-name-filter">Report Name</label>
+                        <select id="report-name-filter">
+                            <option value="">All Reports</option>
+                            <!-- Report names will be loaded here dynamically -->
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="department-filter">Department</label>
+                        <select id="department-filter">
+                            <option value="">All Departments</option>
+                            <!-- Departments will be loaded here dynamically -->
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="submitter-filter">Submitter</label>
+                        <select id="submitter-filter">
+                            <option value="">All Submitters</option>
+                            <!-- Submitters will be loaded here dynamically -->
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="date-range-start">Date Range</label>
+                        <div class="date-range">
+                            <input type="date" id="date-range-start" placeholder="Start Date">
+                            <span>to</span>
+                            <input type="date" id="date-range-end" placeholder="End Date">
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label for="format-filter">Format</label>
+                        <select id="format-filter">
+                            <option value="">All Formats</option>
+                            <!-- Formats will be loaded here dynamically -->
+                        </select>
+                    </div>
+                    <button id="apply-filters" class="action-button primary">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                    <button id="clear-filters" class="action-button secondary">
+                        <i class="fas fa-times"></i> Clear Filters
+                    </button>
+                </div>
+                
+                <div class="table-container">
+                    <table class="data-table" id="report-history-table">
+                        <thead>
+                            <tr>
+                                <th>Report Name</th>
+                                <th>Department</th>
+                                <th>Submitter</th>
+                                <th>Submission Date</th>
+                                <th>Format</th>
+                                <th>Version</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Report history data will be loaded here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="pagination">
+                    <button id="prev-page" class="page-btn"><i class="fas fa-chevron-left"></i> Previous</button>
+                    <span id="page-info">Page 1 of 1</span>
+                    <button id="next-page" class="page-btn">Next <i class="fas fa-chevron-right"></i></button>
+                </div>
+            </section>
+            
+            <!-- Report Details Modal -->
+            <div id="report-details-modal" class="modal">
+                <div class="modal-content modal-lg">
+                    <div class="modal-header">
+                        <h3 id="report-details-title">Report Details</h3>
+                        <span class="modal-close">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div class="report-info">
+                            <div class="info-group">
+                                <strong>Department:</strong>
+                                <span id="report-details-department"></span>
+                            </div>
+                            <div class="info-group">
+                                <strong>Frequency:</strong>
+                                <span id="report-details-frequency"></span>
+                            </div>
+                            <div class="info-group">
+                                <strong>Format:</strong>
+                                <span id="report-details-format"></span>
+                            </div>
+                            <div class="info-group">
+                                <strong>Latest Submission:</strong>
+                                <span id="report-details-date"></span>
+                            </div>
+                            <div class="info-group">
+                                <strong>Status:</strong>
+                                <span id="report-details-status"></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Expanded Previewer Container (no action buttons) -->
+                        <div id="history-preview-container" style="width: 100%; min-height: 400px; max-height: 700px; display: flex; justify-content: center; align-items: center; margin-bottom: 2rem; background: #f8f8f8; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: auto;"></div>
+                        
+                        <h4>File History</h4>
+                        <div class="table-container">
+                            <table class="data-table" id="report-files-table">
+                                <thead>
+                                    <tr>
+                                        <th>File Name</th>
+                                        <th>Upload Date</th>
+                                        <th>Submitter</th>
+                                        <th>Notes</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Report files will be loaded here dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="assets/js/data.js"></script>
+    
+    <!-- Backendless Integration Scripts -->
+    <script src="assets/js/backendless/config.js"></script>
+    
+    <!-- Supabase Integration Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase/config.js"></script>
+    <script src="assets/js/supabase/auth.js"></script>
+    <script src="assets/js/supabase/data.js"></script>
+    <script src="assets/js/supabase/files.js"></script>
+    <script src="assets/js/supabase/integration-manager.js"></script>
+    
+    <!-- Global Functions for Preview and History Modal -->
+    <script src="global-functions.js"></script>
+    
+    <script src="assets/js/script.js"></script>
+    <script src="assets/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Populate filters
+            populateReportHistoryFilters();
+            
+            // Initial render of the table
+            renderReportHistoryTable();
+            
+            // Set up event listeners
+            document.getElementById('apply-filters').addEventListener('click', renderReportHistoryTable);
+            document.getElementById('clear-filters').addEventListener('click', clearFilters);
+            document.getElementById('prev-page').addEventListener('click', goToPreviousPage);
+            document.getElementById('next-page').addEventListener('click', goToNextPage);
+            
+            // Setup report details modal
+            setupReportHistoryModal();
+        });
+        
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let filteredReports = [];
+        
+        function populateReportHistoryFilters() {
+            // Report names
+            const reportNameFilter = document.getElementById('report-name-filter');
+            const reportNames = [...new Set(DB.get('reports').map(report => report.name))];
+            reportNames.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                reportNameFilter.appendChild(option);
+            });
+            
+            // Departments
+            const departmentFilter = document.getElementById('department-filter');
+            const departments = [...new Set(DB.get('reports').map(report => report.department))];
+            departments.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept;
+                option.textContent = dept;
+                departmentFilter.appendChild(option);
+            });
+            
+            // Submitters
+            const submitterFilter = document.getElementById('submitter-filter');
+            const submitters = [...new Set(DB.get('reports').map(report => report.submitter))];
+            submitters.forEach(submitter => {
+                const option = document.createElement('option');
+                option.value = submitter;
+                option.textContent = submitter;
+                submitterFilter.appendChild(option);
+            });
+            
+            // Formats
+            const formatFilter = document.getElementById('format-filter');
+            const formats = [...new Set(DB.get('reports').map(report => report.format))];
+            formats.forEach(format => {
+                const option = document.createElement('option');
+                option.value = format;
+                option.textContent = format;
+                formatFilter.appendChild(option);
+            });
+        }
+        
+        function renderReportHistoryTable() {
+            const tableBody = document.querySelector('#report-history-table tbody');
+            if (!tableBody) return;
+            
+            // Get filter values
+            const reportNameFilter = document.getElementById('report-name-filter').value;
+            const departmentFilter = document.getElementById('department-filter').value;
+            const submitterFilter = document.getElementById('submitter-filter').value;
+            const dateRangeStart = document.getElementById('date-range-start').value;
+            const dateRangeEnd = document.getElementById('date-range-end').value;
+            const formatFilter = document.getElementById('format-filter').value;
+            
+            // Get all reports and their files
+            let allReportEntries = [];
+            
+            DB.get('reports').forEach(report => {
+                if (report.files && report.files.length > 0) {
+                    report.files.forEach((file, index) => {
+                        allReportEntries.push({
+                            reportId: report.id,
+                            reportName: report.name,
+                            department: report.department,
+                            submitter: file.submitter || report.submitter,
+                            date: file.uploadDate,
+                            format: report.format,
+                            fileName: file.name,
+                            notes: file.notes,
+                            version: index + 1
+                        });
+                    });
+                } else {
+                    // For reports without files array (backward compatibility)
+                    allReportEntries.push({
+                        reportId: report.id,
+                        reportName: report.name,
+                        department: report.department,
+                        submitter: report.submitter,
+                        date: report.date,
+                        format: report.format,
+                        fileName: `${report.name}.${report.format.toLowerCase()}`,
+                        notes: 'Initial submission',
+                        version: 1
+                    });
+                }
+            });
+            
+            // Apply filters
+            filteredReports = allReportEntries;
+            
+            if (reportNameFilter) {
+                filteredReports = filteredReports.filter(entry => entry.reportName === reportNameFilter);
+            }
+            
+            if (departmentFilter) {
+                filteredReports = filteredReports.filter(entry => entry.department === departmentFilter);
+            }
+            
+            if (submitterFilter) {
+                filteredReports = filteredReports.filter(entry => entry.submitter === submitterFilter);
+            }
+            
+            if (dateRangeStart) {
+                filteredReports = filteredReports.filter(entry => entry.date >= dateRangeStart);
+            }
+            
+            if (dateRangeEnd) {
+                filteredReports = filteredReports.filter(entry => entry.date <= dateRangeEnd);
+            }
+            
+            if (formatFilter) {
+                filteredReports = filteredReports.filter(entry => entry.format === formatFilter);
+            }
+            
+            // Sort by date (newest first)
+            filteredReports.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Pagination
+            const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
+            if (currentPage > totalPages) {
+                currentPage = totalPages > 0 ? totalPages : 1;
+            }
+            
+            // Update pagination info
+            document.getElementById('page-info').textContent = `Page ${currentPage} of ${totalPages > 0 ? totalPages : 1}`;
+            
+            // Enable/disable pagination buttons
+            document.getElementById('prev-page').disabled = currentPage <= 1;
+            document.getElementById('next-page').disabled = currentPage >= totalPages;
+            
+            // Get current page items
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const currentPageItems = filteredReports.slice(startIndex, startIndex + itemsPerPage);
+            
+            // Render table
+            tableBody.innerHTML = currentPageItems.map(entry => `
+                <tr>
+                    <td>${entry.reportName}</td>
+                    <td>${entry.department}</td>
+                    <td>${entry.submitter}</td>
+                    <td>${entry.date}</td>
+                    <td>${entry.format}</td>
+                    <td>v${entry.version}</td>
+                    <td>
+                        <button class="action-btn view" data-id="${entry.reportId}" title="View Details"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn download" data-id="${entry.reportId}" data-version="${entry.version - 1}" title="Download File"><i class="fas fa-download"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Add event listeners
+            tableBody.querySelectorAll('.action-btn.view').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const reportId = btn.getAttribute('data-id');
+                    openReportHistoryModal(reportId);
+                });
+            });
+            
+            tableBody.querySelectorAll('.action-btn.download').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const reportId = btn.getAttribute('data-id');
+                    const versionIndex = parseInt(btn.getAttribute('data-version'));
+                    
+                    // In a real app, this would download the file
+                    const report = DB.getById('reports', reportId);
+                    
+                    if (report && backendlessAuth.isLoggedIn()) {
+                        // Get file URL from Backendless (mock for now)
+                        let fileUrl = '';
+                        if (report.files && report.files.length > versionIndex) {
+                            // Access the backendless URL for download
+                            showNotification('Downloading file...', 'info');
+                        } else {
+                            showNotification('File not found', 'error');
+                            return;
+                        }
+                        
+                        // Log activity
+                        DB.addActivity({
+                            user: 'Admin User',
+                            action: `downloaded ${report.name} (version ${versionIndex + 1})`,
+                            time: 'just now'
+                        });
+                        
+                        showNotification('Download started', 'success');
+                    } else {
+                        showNotification('You must be logged in to download files', 'error');
+                    }
+                });
+            });
+        }
+        
+        function clearFilters() {
+            document.getElementById('report-name-filter').value = '';
+            document.getElementById('department-filter').value = '';
+            document.getElementById('submitter-filter').value = '';
+            document.getElementById('date-range-start').value = '';
+            document.getElementById('date-range-end').value = '';
+            document.getElementById('format-filter').value = '';
+            
+            currentPage = 1;
+            renderReportHistoryTable();
+        }
+        
+        function goToPreviousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderReportHistoryTable();
+            }
+        }
+        
+        function goToNextPage() {
+            const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderReportHistoryTable();
+            }
+        }
+        
+        function setupReportHistoryModal() {
+            const modal = document.getElementById('report-details-modal');
+            const closeBtn = modal?.querySelector('.modal-close');
+            
+            if (!modal || !closeBtn) return;
+            
+            // Close modal when X is clicked
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+            
+            // Close modal when clicking outside the modal content
+            window.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+        
+        function openReportHistoryModal(reportId) {
+            const modal = document.getElementById('report-details-modal');
+            const titleElement = document.getElementById('report-details-title');
+            const departmentElement = document.getElementById('report-details-department');
+            const frequencyElement = document.getElementById('report-details-frequency');
+            const formatElement = document.getElementById('report-details-format');
+            const dateElement = document.getElementById('report-details-date');
+            const statusElement = document.getElementById('report-details-status');
+            const filesTableBody = document.querySelector('#report-files-table tbody');
+            const previewContainer = document.getElementById('history-preview-container');
+            
+            if (!modal || !titleElement || !departmentElement || !frequencyElement || 
+                !formatElement || !dateElement || !statusElement || !filesTableBody || !previewContainer) return;
+            
+            // Get report details
+            const report = DB.getById('reports', reportId);
+            if (!report) return;
+            
+            // Set report details
+            titleElement.textContent = report.name;
+            departmentElement.textContent = report.department;
+            frequencyElement.textContent = report.frequency;
+            formatElement.textContent = report.format;
+            dateElement.textContent = report.date;
+            statusElement.textContent = report.status;
+            
+            // Render report files
+            const files = report.files || [];
+            if (files.length > 0) {
+                filesTableBody.innerHTML = files.map((file, index) => `
+                    <tr>
+                        <td>${file.name}</td>
+                        <td>${file.uploadDate}</td>
+                        <td>${file.submitter || report.submitter}</td>
+                        <td>${file.notes || 'No notes provided'}</td>
+                        <td>
+                            <button class="action-btn download" data-id="${report.id}" data-version="${index}" title="Download File"><i class="fas fa-download"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                // For backward compatibility
+                filesTableBody.innerHTML = `
+                    <tr>
+                        <td>${report.name}.${report.format.toLowerCase()}</td>
+                        <td>${report.date}</td>
+                        <td>${report.submitter}</td>
+                        <td>Initial submission</td>
+                        <td>
+                            <button class="action-btn download" data-id="${report.id}" data-version="0" title="Download File"><i class="fas fa-download"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            // Add event listeners for download buttons
+            filesTableBody.querySelectorAll('.action-btn.download').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const versionIndex = parseInt(btn.getAttribute('data-version'));
+                    
+                    if (backendlessAuth.isLoggedIn()) {
+                        // In a real app, this would download from Backendless
+                        showNotification('Downloading file...', 'info');
+                        
+                        // Add activity
+                        DB.addActivity({
+                            user: 'Admin User',
+                            action: `downloaded ${report.name} (version ${versionIndex + 1})`,
+                            time: 'just now'
+                        });
+                        
+                        setTimeout(() => {
+                            showNotification('Download complete', 'success');
+                        }, 1500);
+                    } else {
+                        showNotification('You must be logged in to download files', 'error');
+                    }
+                });
+            });
+            
+            // Render the latest file in the previewer (no action buttons in preview area)
+            previewContainer.innerHTML = '';
+            let fileToPreview = null;
+            if (files.length > 0) {
+                // Find the latest file by uploadDate (or just use the last in the array)
+                fileToPreview = files.reduce((latest, file) => {
+                    if (!latest) return file;
+                    if (file.uploadDate && latest.uploadDate) {
+                        return new Date(file.uploadDate) > new Date(latest.uploadDate) ? file : latest;
+                    }
+                    return file;
+                }, null);
+            } else {
+                // Backward compatibility: preview the main report file
+                fileToPreview = {
+                    name: report.name,
+                    fileURL: report.report_url,
+                    uploadDate: report.date,
+                    submitter: report.submitter,
+                    notes: 'Initial submission',
+                    format: report.format
+                };
+            }
+            
+            if (fileToPreview && fileToPreview.fileURL) {
+                // Create a temporary preview content div for the updateHistoryPreview function
+                const tempPreviewContent = document.createElement('div');
+                tempPreviewContent.id = 'history-preview-content';
+                previewContainer.appendChild(tempPreviewContent);
+                
+                // Use the shared preview logic if available
+                if (window.updateHistoryPreview && typeof window.updateHistoryPreview === 'function') {
+                    // Create a report object that matches what updateHistoryPreview expects
+                    const reportForPreview = {
+                        name: fileToPreview.name,
+                        report_url: fileToPreview.fileURL,
+                        department: report.department,
+                        submitter: fileToPreview.submitter,
+                        date: fileToPreview.uploadDate,
+                        format: fileToPreview.format || report.format
+                    };
+                    window.updateHistoryPreview(reportForPreview);
+                    
+                    // Move the content from the temp div to the main container
+                    if (tempPreviewContent.children.length > 0) {
+                        previewContainer.innerHTML = '';
+                        while (tempPreviewContent.firstChild) {
+                            previewContainer.appendChild(tempPreviewContent.firstChild);
+                        }
+                    }
+                } else {
+                    // Fallback: show as image or link
+                    previewContainer.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = fileToPreview.fileURL;
+                    img.style.maxWidth = '100%';
+                    img.style.maxHeight = '600px';
+                    img.style.borderRadius = '4px';
+                    img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.12)';
+                    img.style.margin = '0 auto';
+                    img.style.display = 'block';
+                    previewContainer.appendChild(img);
+                }
+            } else {
+                previewContainer.innerHTML = '<p style="color: #999; font-style: italic;">No preview available</p>';
+            }
+            
+            // Show modal
+            modal.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

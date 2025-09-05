@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Report Repository</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--background-color);
+        }
+        .login-box {
+            width: 400px;
+            background-color: var(--card-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .login-header i {
+            font-size: 3rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            display: block;
+        }
+        .login-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        .login-header p {
+            color: #777;
+            font-size: 0.9rem;
+        }
+        .login-form .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .login-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .login-form input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+        .btn-login {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .signup-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+        }
+        .signup-link a {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+        .alert {
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .alert-danger {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(231, 76, 60, 0.2);
+        }
+        .alert-success {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+    </style>
+</head>
+<body class="login-page">
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <i class="fas fa-database"></i>
+                <h2>ReportRepo</h2>
+                <p>Create your account</p>
+            </div>
+            <div class="alert alert-danger" id="error-message"></div>
+            <div class="alert alert-success" id="success-message"></div>
+            <form class="login-form" id="signup-form">
+                <div class="form-group">
+                    <label for="name"><i class="fas fa-user"></i> Full Name</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email"><i class="fas fa-envelope"></i> Email Address</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password"><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password"><i class="fas fa-lock"></i> Confirm Password</label>
+                    <input type="password" id="confirm-password" required>
+                </div>
+                <button type="submit" class="btn-primary btn-login">Sign Up</button>
+            </form>
+            <div class="signup-link">
+                Already have an account? <a href="login.html">Log in</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase Integration -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase/config.js"></script>
+    <script src="assets/js/supabase/auth.js"></script>
+    <script src="assets/js/supabase/data.js"></script>
+    <script src="assets/js/supabase/integration-manager.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const signupForm = document.getElementById('signup-form');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+            
+            // Check if already logged in, redirect to dashboard
+            if (supabaseAuth.isLoggedIn()) {
+                window.location.href = 'index.html';
+            }
+
+            signupForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Hide any previous messages
+                errorMessage.style.display = 'none';
+                successMessage.style.display = 'none';
+                
+                const name = document.getElementById('name').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirm-password').value;
+                
+                // Basic validation
+                if (!name || !email || !password || !confirmPassword) {
+                    showError('All fields are required.');
+                    return;
+                }
+                
+                if (password !== confirmPassword) {
+                    showError('Passwords do not match.');
+                    return;
+                }
+                
+                if (password.length < 6) {
+                    showError('Password must be at least 6 characters long.');
+                    return;
+                }
+                
+                try {
+                    // Register the user with Supabase and include all fields
+                    const userData = await supabaseAuth.register(email, password, name, 'General', 'User');
+                    
+                    // Also create the user record in the app's local storage
+                    const db = JSON.parse(localStorage.getItem('reportrepo_db'));
+                    if (db && db.users) {
+                        // Add the new user to local storage
+                        db.users.push({
+                            id: userData.objectId,
+                            name: name,
+                            email: email,
+                            department: 'General',
+                            departments: [],
+                            role: 'User',
+                            lastLogin: null,
+                            permissions: {
+                                canView: ['department'],
+                                canAdd: ['department'],
+                                canEdit: ['department'],
+                                canDelete: ['none']
+                            }
+                        });
+                        
+                        // Save updated DB
+                        localStorage.setItem('reportrepo_db', JSON.stringify(db));
+                    }
+                    
+                    // Show success message
+                    showSuccess('Registration successful! You can now login.');
+                    
+                    // Reset form
+                    signupForm.reset();
+                    
+                    // Redirect to login page after a delay
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } catch (error) {
+                    showError(error.message || 'Registration failed. Please try again.');
+                }
+            });
+            
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+            }
+            
+            function showSuccess(message) {
+                successMessage.textContent = message;
+                successMessage.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

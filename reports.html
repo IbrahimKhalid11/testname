@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Report Repository</title>
+    <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .avatar-initials {
+            background-color: var(--secondary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+        .avatar-initials::before {
+            content: attr(data-initials);
+        }
+        .file-upload-progress {
+            margin-top: 10px;
+            display: none;
+        }
+        .progress-bar {
+            height: 10px;
+            background-color: #f3f3f3;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--secondary-color);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .progress-status {
+            font-size: 12px;
+            color: #777;
+        }
+        
+        /* Selection styles for preview */
+        .selected-row {
+            background-color: #e3f2fd !important;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .selected-row:hover {
+            background-color: #bbdefb !important;
+        }
+        
+        .data-table tbody tr {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .data-table tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        /* Enhanced preview styles for scaled content */
+        #preview-container iframe,
+        #history-preview-content iframe {
+            transform-origin: top left;
+            border: none;
+        }
+        
+        /* Ensure preview containers can handle scaled content */
+        #preview-container,
+        #history-preview-content {
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Loading spinner styles */
+        .fa-spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #preview-container, #preview-container iframe {
+            height: 100% !important;
+            min-height: 100% !important;
+        }
+                /* Add to your <style> or assets/css/style.css */
+        .sidebar-collapsed .sidebar {
+          transform: translateX(-100%);
+          transition: transform 0.3s;
+        }
+        .sidebar {
+          transition: transform 0.3s;
+        }
+        /* Fixed sidebar toggle button - STAYS IN PLACE WHEN SCROLLING */
+        #sidebar-toggle {
+          position: fixed !important;  /* !important to override any inline styles */
+          top: 24px;
+          left: 220px;
+          z-index: 2000;
+          background: #2d3542;
+          color: #fff;
+          border: none;
+          border-radius: 10px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          padding: 10px 14px;
+          font-size: 1.4rem;
+          transition: left 0.3s, background 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        #sidebar-toggle:hover, #sidebar-toggle:focus {
+          background: #3a4252;
+          color: #fff;
+          outline: none;
+        }
+        .sidebar-collapsed #sidebar-toggle {
+          left: 24px; /* Move to edge when sidebar is collapsed */
+        }
+        .sidebar-header {
+          position: relative; /* Ensure positioning context */
+        }
+    
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-file-alt"></i>
+                <h2>IRAVIN REPORTS</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li class="active"><a href="reports.html"><i class="fas fa-file-alt"></i> Reports</a></li>
+                    <li><a href="users.html"><i class="fas fa-users"></i> User Management</a></li>
+                    <li><a href="system-reports.html"><i class="fas fa-chart-line"></i> System Reports</a></li>
+                    <li><a href="calendar.html"><i class="fas fa-calendar-alt"></i> Calendar</a></li>
+                    <li><a href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
+                    <li><a href="scorecard-designer.html"><i class="fas fa-edit"></i> Scorecard Designer</a></li>
+                    <li><a href="kpi-data-entry.html"><i class="fas fa-chart-bar"></i> KPI Data Entry</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="login.html" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </aside>
+                <button id="sidebar-toggle" class="btn btn-light">
+            <i class="fas fa-bars"></i>
+        </button>
+        <main class="main-content">
+            <header class="main-header">
+                <h1>Reports</h1>
+                <button class="action-button primary" id="upload-report-btn">
+                    <i class="fas fa-upload"></i> Upload Report
+                </button>
+            </header>
+            <section class="content-section">
+                <div class="filter-bar">
+                    <select id="department-filter">
+                        <option value="">All Departments</option>
+                    </select>
+                    <select id="status-filter">
+                        <option value="">All Statuses</option>
+                        <option value="Submitted">Submitted</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Late">Late</option>
+                    </select>
+
+                    <input type="date" id="date-filter" placeholder="Filter by date">
+                </div>
+                
+                <!-- Preview Pane for Reports -->
+                <div class="report-preview-pane" style="margin-bottom: 20px; padding: 20px; background-color: #f9f9f9; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    <div class="preview-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 id="preview-title">Report Preview</h3>
+                        <div>
+                            <span id="preview-info" style="font-size: 0.9rem; color: #666;"></span>
+                        </div>
+                    </div>
+                    <div class="preview-content" style="display: flex; flex-direction: column; align-items: center;">
+                        <div id="preview-container" style="width: 100%; aspect-ratio: 5/3; display: flex; justify-content: center; align-items: center; overflow: hidden; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
+                            <p id="no-preview-message" style="color: #999; font-style: italic;">Select a report to preview</p>
+                            <img id="preview-image" src="" alt="Report Preview" style="max-width: 100%; max-height: 400px; display: none;">
+                        </div>
+                        <div class="preview-controls" style="display: flex; justify-content: center; align-items: center; margin-top: 15px;">
+                            <button id="prev-report-btn" class="action-button secondary" style="margin-right: 10px;" disabled>
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </button>
+                            <span id="preview-counter" style="margin: 0 15px;">0 of 0</span>
+                            <button id="next-report-btn" class="action-button secondary" style="margin-left: 10px;" disabled>
+                                Next <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="preview-actions" style="margin-top: 15px;">
+                            <!-- Download and View Details buttons removed as requested -->
+                        </div>
+                    </div>
+                </div>
+                
+
+                <div id="reports-container">
+                    <!-- Reports will be loaded here dynamically with RLS filtering -->
+                </div>
+            </section>
+            
+            <!-- Report Upload Modal -->
+            <div id="upload-report-modal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Upload Report</h3>
+                        <span class="modal-close">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <form id="upload-report-form">
+                            <div class="form-group">
+                                <label for="report-department-upload">Department</label>
+                                <select id="report-department-upload" required>
+                                    <option value="">Select Department</option>
+                                    <!-- Departments will be loaded here dynamically -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="report-type">Report Type</label>
+                                <select id="report-type" required>
+                                    <option value="">Select Department First</option>
+                                    <!-- Report types will be loaded here dynamically -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="report-file">Report File</label>
+                                <input type="file" id="report-file" required>
+                                <small id="format-hint">Please select a report type first</small>
+                                <div class="file-upload-progress" id="upload-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-bar-fill" id="progress-bar-fill"></div>
+                                    </div>
+                                    <div class="progress-status" id="progress-status">0% Uploaded</div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="report-notes">Notes (Optional)</label>
+                                <textarea id="report-notes" rows="3"></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="cancel-btn">Cancel</button>
+                                <button type="submit" class="save-btn">Upload</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Report Details Modal -->
+            <div id="report-details-modal" class="modal">
+                <div class="modal-content modal-lg">
+                    <div class="modal-header">
+                        <h3 id="report-details-title">Report Details</h3>
+                        <span class="modal-close">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div class="report-info">
+                            <div class="info-group">
+                                <strong>Department:</strong>
+                                <span id="report-details-department"></span>
+                            </div>
+                            <div class="info-group">
+                                <strong>Frequency:</strong>
+                                <span id="report-details-frequency"></span>
+                            </div>
+                            <div class="info-group">
+                                <strong>Format:</strong>
+                                <span id="report-details-format"></span>
+                            </div>
+                            <div class="info-group">
+                                <strong>Latest Submission:</strong>
+                                <span id="report-details-date"></span>
+                            </div>
+                            <div class="info-group">
+                                <strong>Status:</strong>
+                                <span id="report-details-status"></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Report Preview Section -->
+                        <div class="report-preview">
+                            <img id="report-preview-image" src="" alt="Report Preview">
+                            <div class="preview-controls">
+                                <button class="preview-control-btn" id="prev-version-btn"><i class="fas fa-chevron-left"></i></button>
+                                <span class="preview-counter" id="version-counter">1 of 5</span>
+                                <button class="preview-control-btn" id="next-version-btn"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                        
+                        <h4>File History</h4>
+                        <div class="table-container">
+                            <table class="data-table" id="report-files-table">
+                                <thead>
+                                    <tr>
+                                        <th>File Name</th>
+                                        <th>Upload Date</th>
+                                        <th>Submitter</th>
+                                        <th>Notes</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Report files will be loaded here dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="upload-new-version-btn action-button primary">
+                                <i class="fas fa-upload"></i> Upload New Version
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+
+            
+            <!-- Edit Report Modal -->
+            <div id="edit-report-modal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Edit Report</h3>
+                        <span class="modal-close">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <form id="edit-report-form">
+                            <input type="hidden" id="edit-report-id">
+                            <div class="form-group">
+                                <label for="edit-report-name">Report Name</label>
+                                <input type="text" id="edit-report-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-report-department">Department</label>
+                                <select id="edit-report-department" required>
+                                    <option value="">Select Department</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-report-status">Status</label>
+                                <select id="edit-report-status" required>
+                                    <option value="Submitted">Submitted</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Late">Late</option>
+                                </select>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="cancel-btn">Cancel</button>
+                                <button type="submit" class="save-btn">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Report History Modal with Preview -->
+            <div id="report-history-modal" class="modal">
+                <div class="modal-content modal-xl">
+                    <div class="modal-header">
+                        <h3 id="report-history-title">Report History</h3>
+                        <span class="modal-close">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div class="report-history-container" style="display: flex; flex-direction: column; gap: 20px; height: 800px;">
+                            <!-- Previewer and Navigation Controls (moved above) -->
+                            <div class="report-history-preview" style="width: 100%;">
+                                <h4>Report Preview</h4>
+                                <div class="preview-container" style="height: 500px; border: 1px solid #ddd; border-radius: 8px; display: flex; flex-direction: column;">
+                                    <div id="history-preview-content" style="flex: 1; display: flex; justify-content: center; align-items: center; background: #f9f9f9; overflow: hidden;"></div>
+                                    <div class="preview-controls" style="padding: 10px; border-top: 1px solid #ddd; display: flex; justify-content: center; align-items: center; gap: 10px;">
+                                        <button id="history-prev-btn" class="action-button secondary" disabled>
+                                            <i class="fas fa-chevron-left"></i> Previous
+                                        </button>
+                                        <span id="history-counter" style="margin: 0 15px;">0 of 0</span>
+                                        <button id="history-next-btn" class="action-button secondary" disabled>
+                                            Next <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Report History List/Table -->
+                            <div class="report-history-list" style="flex: 1;">
+                                <h4 id="report-history-subtitle">Report History</h4>
+                                <div class="table-container" style="max-height: 200px; overflow-y: auto;">
+                                    <table class="data-table" id="report-history-table">
+                                        <thead>
+                                            <tr>
+                                                <th>File Name</th>
+                                                <th>Upload Date</th>
+                                                <th>Submitter</th>
+                                                <th>Notes</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Report history will be loaded here dynamically -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Application Scripts -->
+    <script src="assets/js/data.js"></script>
+    
+    <!-- Backendless Integration Scripts -->
+    <script src="assets/js/backendless/config.js"></script>
+    
+    <!-- Supabase Integration Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase/config.js"></script>
+    <script src="assets/js/supabase/auth.js"></script>
+    <script src="assets/js/supabase/data.js"></script>
+    <script src="assets/js/supabase/files.js"></script>
+    <script src="assets/js/supabase/integration-manager.js"></script>
+    
+    <!-- Main Application Scripts -->
+    <script src="assets/js/script.js"></script>
+    <script src="assets/js/app.js"></script>
+    
+    <!-- Access Control Module -->
+    <script src="assets/js/access-control.js"></script>
+    
+    <!-- Navigation Template -->
+    <script src="assets/js/navigation-template.js"></script>
+    
+    <!-- Global Functions for Grouped Reports with RLS -->
+    <script src="global-functions.js"></script>
+    
+    <!-- Comprehensive Integration Fix Script -->
+    <script src="integration-fix.js"></script>
+    
+    <script>
+        // Initialize Supabase integration
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Auto-initializing Supabase Integration Manager...');
+            
+            // Initialize Supabase integration manager
+            if (typeof supabaseIntegrationManager !== 'undefined') {
+                supabaseIntegrationManager.initialize()
+                    .then(() => {
+                        console.log('✅ Supabase Integration Manager initialized successfully');
+                        return supabaseIntegrationManager.syncFromSupabase();
+                    })
+                    .then(() => {
+                        console.log('✅ Initial sync from Supabase completed');
+                        
+                        // Refresh the UI after sync
+                        if (typeof renderReportsTable === 'function') {
+                            renderReportsTable();
+                        }
+                        
+                        // Repopulate department filter with RLS after sync
+                        if (typeof populateDepartmentFilterWithRLS === 'function') {
+                            console.log('🔒 Repopulating department filter after sync...');
+                            populateDepartmentFilterWithRLS();
+                        }
+                        
+                        // Check if we should auto-open upload modal (from calendar)
+                        checkForAutoUpload();
+                    })
+                    .catch((error) => {
+                        console.error('❌ Supabase Integration Manager initialization failed:', error);
+                        console.log('📄 Falling back to local data only');
+                        
+                        // Still try to render the UI with local data
+                        if (typeof renderReportsTable === 'function') {
+                            renderReportsTable();
+                        }
+                        
+                        // Repopulate department filter with RLS even on error
+                        if (typeof populateDepartmentFilterWithRLS === 'function') {
+                            console.log('🔒 Repopulating department filter after sync error...');
+                            populateDepartmentFilterWithRLS();
+                        }
+                        
+                        // Check if we should auto-open upload modal (from calendar)
+                        checkForAutoUpload();
+                    });
+            } else {
+                console.warn('⚠️ Supabase Integration Manager not available, using local data only');
+                // Check if we should auto-open upload modal (from calendar)
+                checkForAutoUpload();
+            }
+        });
+        
+        // Function to check if we should auto-open upload modal
+        function checkForAutoUpload() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const reportTypeId = urlParams.get('reportType');
+            const shouldUpload = urlParams.get('upload');
+            
+            if (reportTypeId && shouldUpload === 'true') {
+                console.log('📤 Auto-opening upload modal for report type:', reportTypeId);
+                
+                // Find a report of this type to get the context
+                const reports = DB.get('reports') || [];
+                const targetReport = reports.find(report => 
+                    report.report_type_id == reportTypeId || report.reportTypeId == reportTypeId
+                );
+                
+                // Always use the main upload modal for consistency
+                console.log('📤 Opening main upload modal for report type:', reportTypeId);
+                const uploadModal = document.getElementById('upload-report-modal');
+                if (uploadModal) {
+                    // Get the report type details to find department and name
+                    const reportTypes = DB.get('reportTypes') || [];
+                    const targetReportType = reportTypes.find(rt => rt.id == reportTypeId);
+                    
+                    if (targetReportType) {
+                        console.log('📤 Found report type:', targetReportType);
+                        
+                        // Show the modal first to trigger department population
+                        uploadModal.style.display = 'block';
+                        
+                        // Populate department dropdown immediately
+                        if (typeof window.populateUploadModalDepartmentDropdown === 'function') {
+                            console.log('📤 Populating upload modal department dropdown...');
+                            window.populateUploadModalDepartmentDropdown();
+                        } else {
+                            console.warn('📤 populateUploadModalDepartmentDropdown function not available');
+                        }
+                        
+                        // Wait for department dropdown to be populated, then set values
+                        const waitForDepartmentDropdown = () => {
+                            const departmentSelect = document.getElementById('report-department-upload');
+                            if (departmentSelect && departmentSelect.options.length > 1) {
+                                console.log('📤 Department dropdown populated, setting values...');
+                                
+                                // Check if the target department exists in the dropdown
+                                const departmentExists = Array.from(departmentSelect.options).some(option => 
+                                    option.value === targetReportType.department
+                                );
+                                
+                                if (departmentExists) {
+                                    // Pre-select the department first
+                                    departmentSelect.value = targetReportType.department;
+                                    console.log('📤 Set department to:', targetReportType.department);
+                                    // Trigger department change to populate report types
+                                    departmentSelect.dispatchEvent(new Event('change'));
+                                    
+                                    // Then pre-select the report type
+                                    setTimeout(() => {
+                                        const reportTypeSelect = document.getElementById('report-type');
+                                        if (reportTypeSelect) {
+                                            reportTypeSelect.value = targetReportType.name;
+                                            console.log('📤 Set report type to:', targetReportType.name);
+                                            // Trigger change event to load format hint
+                                            reportTypeSelect.dispatchEvent(new Event('change'));
+                                        }
+                                    }, 200);
+                                } else {
+                                    console.warn('📤 Target department not found in dropdown:', targetReportType.department);
+                                }
+                            } else {
+                                console.log('📤 Waiting for department dropdown to populate...');
+                                setTimeout(waitForDepartmentDropdown, 100);
+                            }
+                        };
+                        
+                        // Start waiting for department dropdown
+                        waitForDepartmentDropdown();
+                        
+                    } else {
+                        console.warn('Report type not found:', reportTypeId);
+                        uploadModal.style.display = 'block';
+                    }
+                } else {
+                    console.warn('Main upload modal not found');
+                    alert('Upload functionality not available');
+                }
+                
+                // Clean up the URL parameters
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, newUrl);
+            }
+        }
+    </script>
+        <script>
+document.getElementById('sidebar-toggle').addEventListener('click', function() {
+  document.body.classList.toggle('sidebar-collapsed');
+});
+</script>
+</body>
+</html>

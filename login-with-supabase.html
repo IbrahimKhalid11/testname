@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login with Supabase - Report Repository</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .alert {
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .alert-danger {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(231, 76, 60, 0.2);
+        }
+        .alert-info {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+            border: 1px solid rgba(52, 152, 219, 0.2);
+            display: block;
+        }
+        .signup-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+        }
+        .signup-link a {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .btn-secondary {
+            flex: 1;
+            background-color: #f1f1f1;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .btn-secondary:hover {
+            background-color: #e5e5e5;
+        }
+    </style>
+</head>
+<body class="login-page">
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <i class="fas fa-database"></i>
+                <h2>ReportRepo</h2>
+                <p>Sign in with Supabase</p>
+            </div>
+            <div class="alert alert-info" id="info-message">
+                This is a Supabase authentication test page. Use admin@reportrepo.com / admin123 for testing.
+            </div>
+            <div class="alert alert-danger" id="error-message"></div>
+            <form class="login-form" id="login-form">
+                <div class="form-group">
+                    <label for="email"><i class="fas fa-envelope"></i> Email Address</label>
+                    <input type="email" id="email" value="admin@reportrepo.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password"><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="password" value="admin123" required>
+                </div>
+                <div class="form-options">
+                    <label><input type="checkbox" id="remember-me" checked> Remember me</label>
+                    <a href="#">Forgot password?</a>
+                </div>
+                <button type="submit" class="btn-primary btn-login">Login with Supabase</button>
+            </form>
+            
+            <div class="auth-buttons">
+                <button onclick="createMockSession()" class="btn-secondary">
+                    <i class="fas fa-user-plus"></i> Create Mock Session
+                </button>
+                <button onclick="window.location.href='login.html'" class="btn-secondary">
+                    <i class="fas fa-exchange-alt"></i> Use Backendless
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Load Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Load configuration and services -->
+    <script src="assets/js/supabase/config.js"></script>
+    <script src="assets/js/supabase/auth.js"></script>
+    
+    <!-- Load Auth Integration Manager -->
+    <script src="auth-integration-manager.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('login-form');
+            const errorMessage = document.getElementById('error-message');
+            
+            // Initialize Auth Manager
+            authManager.init().then(() => {
+                // Set auth provider to Supabase for this page
+                authManager.setAuthProvider('supabase');
+                
+                // Check if already logged in, redirect to dashboard
+                if (authManager.isLoggedIn()) {
+                    window.location.href = 'index.html';
+                }
+            });
+
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Hide any previous error messages
+                errorMessage.style.display = 'none';
+                
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+                const rememberMe = document.getElementById('remember-me').checked;
+                
+                // Basic validation
+                if (!email || !password) {
+                    showError('Email and password are required.');
+                    return;
+                }
+                
+                try {
+                    // Login with Auth Manager (Supabase)
+                    const userData = await authManager.login(email, password);
+                    
+                    // If remember me is not checked, we'll set an expiration time for the token
+                    if (!rememberMe) {
+                        // Set expiration time to 24 hours from now
+                        const expirationTime = new Date().getTime() + 24 * 60 * 60 * 1000;
+                        localStorage.setItem('token_expiration', expirationTime);
+                    }
+                    
+                    // Redirect to the dashboard
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    showError(error.message || 'Login failed. Please check your credentials and try again.');
+                }
+            });
+            
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+            }
+        });
+        
+        async function createMockSession() {
+            try {
+                // Create a mock session using Auth Manager
+                await authManager.createMockSession();
+                
+                // Redirect to the dashboard
+                window.location.href = 'index.html';
+            } catch (error) {
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.textContent = error.message || 'Failed to create mock session.';
+                errorMessage.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
